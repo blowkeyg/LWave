@@ -1,0 +1,149 @@
+name: Build LWave OS ISO
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+      - name: 🌊 Checkout LWave Repository
+        uses: actions/checkout@v4
+      
+      - name: 🛠️ Install Build Dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm archiso git base-devel squashfs-tools libisoburn
+          pacman -S --noconfirm rsync grub syslinux edk2-shell dosfstools mtools
+      
+      - name: 📦 Add Archcraft Repository
+        run: |
+          mkdir -p /etc/pacman.d
+          cat >> /etc/pacman.conf << 'EOF'
+          
+          [archcraft]
+          SigLevel = Optional TrustAll
+          Server = https://archcraft.io/$arch
+          EOF
+          pacman -Sy --noconfirm archcraft-openbox archcraft-themes archcraft-icons archcraft-fonts archcraft-wallpapers
+      
+      - name: 📁 Prepare Build Directory Structure
+        run: |
+          mkdir -p lwave-build/airootfs/usr/local/bin
+          mkdir -p lwave-build/airootfs/etc/pacman.d
+          mkdir -p lwave-build/airootfs/etc/skel/.config/openbox
+          mkdir -p lwave-build/boot/grub/fonts
+      
+      - name: ⚙️ Generate Build Configuration Files
+        run: |
+          bash setup_lwave.sh
+          cp profiledef.sh lwave-build/
+          cp pacman.conf lwave-build/
+          cp packages.x86_64 lwave-build/
+          cp airootfs/usr/local/bin/lwave-installer.sh lwave-build/airootfs/usr/local/bin/
+      
+      - name: 🔐 Set Proper Permissions
+        run: |
+          chmod +x lwave-build/airootfs/usr/local/bin/lwave-installer.sh
+          chmod +x lwave-build/profiledef.sh
+      
+      - name: 🏗️ Compile LWave ISO
+        run: |
+          cd lwave-build
+          mkarchiso -v -w /tmp/archiso-tmp -o /tmp/lwave-output ./
+          ls -lh /tmp/lwave-output/*.iso
+      
+      - name: 📊 Generate Build Report
+        if: always()
+        run: |
+          mkdir -p build-artifacts
+          if [ -f /tmp/lwave-output/*.iso ]; then
+            cp /tmp/lwave-output/*.iso build-artifacts/
+            ISO_FILE=$(ls /tmp/lwave-output/*.iso | head -n 1)
+            ISO_SIZE=$(du -h "$ISO_FILE" | cut -f1)
+            ISO_HASH=$(sha256sum "$ISO_FILE" | awk '{print $1}')
+            echo "✅ ISO Build Successful" > build-report.txt
+            echo "File: $(basename $ISO_FILE)" >> build-report.txt
+            echo "Size: $ISO_SIZE" >> build-report.txt
+            echo "SHA256: $ISO_HASH" >> build-report.txt
+          else
+            echo "❌ ISO Build Failed" > build-report.txt
+          fi
+          cat build-report.txt
+      
+      - name: 📤 Upload ISO to Artifacts
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: lwave-os-iso
+          path: build-artifacts/*.iso
+          retention-days: 30
+      
+      - name: 🚀 Create Release (on Main Push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build-artifacts/*.iso
+          tag_name: lwave-${{ github.run_number }}
+          body_path: build-report.txt
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 💾 Upload Build Logs
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: build-logs
+          path: build-report.txt
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: build
+    if: success()
+    
+    steps:
+      - name: 🌊 Checkout Repository
+        uses: actions/checkout@v4
+      
+      - name: 🔒 Verify Script Integrity
+        run: |
+          echo "🔐 Scanning for hardcoded credentials..."
+          if grep -r "password\|token\|secret\|api_key" setup_lwave.sh; then
+            echo "❌ WARNING: Possible secrets found in scripts!"
+            exit 1
+          else
+            echo "✅ No credentials detected"
+          fi
+      
+      - name: 📋 Validate Shell Syntax
+        run: |
+          bash -n setup_lwave.sh
+          echo "✅ Shell syntax validation passed"
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build, security-scan]
+    if: always()
+    
+    steps:
+      - name: 📢 Build Status Summary
+        run: |
+          echo "🌊 LWave OS Build Pipeline Complete!"
+          echo "Build Status: ${{ job.status }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref }}"
+          echo "Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
