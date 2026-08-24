@@ -85,7 +85,7 @@ jobs:
           cat build-report.txt
       
       - name: 📤 Upload ISO to Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: success()
         with:
           name: lwave-os-iso
@@ -94,7 +94,7 @@ jobs:
       
       - name: 🚀 Create Release (on Main Push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build-artifacts/*.iso
           tag_name: lwave-${{ github.run_number }}
@@ -104,7 +104,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: 💾 Upload Build Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: build-logs
