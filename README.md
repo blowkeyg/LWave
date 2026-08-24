@@ -48,12 +48,62 @@ Tech monopolies build software to make shareholders and data brokers happy.
 
 ---
 
+## 💻 Minimum Requirements
+
+### For Building LWave OS (Compiling the ISO)
+
+| Requirement | Specification |
+|-------------|---|
+| **Operating System** | Linux (Arch Linux recommended) |
+| **CPU Architecture** | x86_64 (64-bit) |
+| **RAM** | 4GB minimum, 8GB+ recommended |
+| **Disk Space** | 15-20GB free (for build workspace + ISO output) |
+| **Internet** | Required for downloading packages from Arch/Archcraft repos |
+| **Build Tools** | `archiso`, `mkarchiso`, `rsync`, `pacman`, `git`, `base-devel` |
+
+**Build Time**: ~15-30 minutes (varies by internet speed and CPU)
+
+### LWave OS Live ISO
+
+| Specification | Value |
+|---|---|
+| **ISO File Size** | ~700-850MB (zstd compressed, level 22) |
+| **Uncompressed Size** | ~2.5-3GB |
+| **Media Required** | USB 3.0 drive, 1GB+ minimum (2GB+ recommended) |
+| **Download Time** | ~5-15 minutes (depends on connection speed) |
+
+### For Installing LWave OS (End Users)
+
+| Requirement | Minimum | Recommended |
+|---|---|---|
+| **CPU** | 64-bit dual-core | Quad-core or better |
+| **RAM** | 2GB (live boot) | 4GB or more |
+| **Disk Space** | 10GB (bare OS only) | 15-20GB (with apps) |
+| **Boot Method** | UEFI or BIOS | UEFI preferred |
+| **Network** | Optional (offline install works) | Recommended for Flatpak apps |
+| **GPU** | Integrated graphics | Intel/AMD/NVIDIA supported |
+
+### Hardware Support & Drivers
+
+LWave OS detects and offers installation of:
+
+| Hardware | Support | Drivers Available |
+|---|---|---|
+| **Intel iGPU** | ✅ Full | `xf86-video-intel`, `vulkan-intel` |
+| **AMD Radeon** | ✅ Full | `xf86-video-amdgpu`, `vulkan-radeon` |
+| **NVIDIA GPU** | ✅ Full | `nvidia`, `nvidia-utils`, `nvidia-prime` |
+| **Bluetooth** | ✅ Supported | `bluez`, `bluez-utils` |
+| **WiFi/Ethernet** | ✅ Auto-detected | Arch Linux built-in drivers |
+| **USB Peripherals** | ✅ Full | Standard Linux HID support |
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Linux system with `mkarchiso`, `rsync`, `pacman`
 - 4GB+ RAM for building
-- 10GB+ free disk space
+- 15GB+ free disk space
 - Internet connection
 
 ### Build LWave OS ISO
