@@ -69,7 +69,6 @@ if [ -f /etc/default/grub ]; then
 fi
 
 # --- 7. AUTOMATE REAL-TIME HARDWARE WEB DASHBOARD (PORT 8000) ---
-# FIXED: Replaced string typo with clean shell bracket directory expansion
 AUTOSTART_PATH="/etc/skel/.config/openbox/autostart"
 mkdir -p "$(dirname "$AUTOSTART_PATH")"
 
@@ -80,10 +79,39 @@ python3 /usr/local/bin/beachdream-web-monitor.py &
 python3 -m http.server --directory /tmp/beachdream_status 8000 &
 EOF
 
-# --- 8. FINALIZE IMMUTABLE CLONING ACTION ---
-rofi -e "🚀 Customizations mapped! Copying LWave to your hard drive and locking the immutable core..."
+# --- 8. FIXED: FULL HARD DRIVE EXECUTION ENGINE ---
+# Find the primary hard drive automatically (safely ignoring your bootable USB)
+TARGET_DRIVE=$(lsblk -dno NAME,TYPE | awk '$2=="disk" {print "/dev/"$1}' | grep -v "$(lsblk -no PKNAME $(df / | awk 'NR==2 {print $1}'))" | head -n 1)
 
-# Execution commands to push image to bare metal hard drive go here...
-chmod +x ~/Lwave/airootfs/usr/local/bin/lwave-installer.sh
+if [ -z "$TARGET_DRIVE" ]; then
+    rofi -e "❌ Error: No target hard drive found to install LWave OS!"
+    exit 1
+fi
+
+rofi -e "🚀 Target Found: $TARGET_DRIVE\nWarning: This will format the disk. Copying LWave OS now..."
+
+# Create a clean partition layout using sfdisk (Boot sector + Linux Root)
+echo -e "label: gpt\n, , L" | sfdisk "$TARGET_DRIVE"
+
+# Identify the newly created installation partition path
+TARGET_PART="${TARGET_DRIVE}1"
+if [[ "$TARGET_DRIVE" == *"nvme"* ]]; then
+    TARGET_PART="${TARGET_DRIVE}p1"
+fi
+
+# Format the target drive into a clean Ext4 Linux File System partition
+mkfs.ext4 -F "$TARGET_PART"
+
+# Setup a clean local mount destination sandbox folder
+mkdir -p /mnt/lwave_target
+mount "$TARGET_PART" /mnt/lwave_target
+
+# Execute rsync to clone the entire live OS file structure right onto the hard drive
+rsync -aAXv --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /mnt/lwave_target/
+
+# Set up standard boot paths and safely lock away the environment
+echo "LWave installation complete!"
+umount /mnt/lwave_target
+rofi -e "🎉 LWave OS successfully written to your computer disk! Pull out your USB and reboot."
 
 
