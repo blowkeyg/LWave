@@ -16,10 +16,28 @@ EOF
 # --- 2. USER INTERFACE: SELECT APPLICATIONS ---
 CHOSEN_APPS=$(rofi -dmenu -multi-select -p "📦 Select Apps to Pre-install" <<EOF
 Firefox (Web Browser)
+Chromium (Alternative Browser)
+Librewolf (Privacy Browser)
+Thorium (Fast Browser)
 Sidra (Apple Music)
 Spotify (Music Streaming)
 Discord (Chat App)
+Telegram (Messaging)
 Steam (Gaming Hub)
+Lutris (Game Manager)
+GIMP (Image Editor)
+Krita (Digital Painting)
+Blender (3D Modeling)
+OBS Studio (Screen Recording)
+Audacity (Audio Editor)
+VLC (Media Player)
+Transmission (Torrent Client)
+Syncthing (File Sync)
+Nextcloud (Cloud Storage)
+LibreOffice (Office Suite)
+Thunderbird (Email Client)
+Mullvad VPN (Privacy VPN)
+Bitwarden (Password Manager)
 EOF
 )
 
@@ -43,14 +61,50 @@ for APP in $CHOSEN_APPS; do
     case "$APP" in
         "Firefox (Web Browser)")
             flatpak install -y flathub org.mozilla.firefox ;;
+        "Chromium (Alternative Browser)")
+            flatpak install -y flathub org.chromium.Chromium ;;
+        "Librewolf (Privacy Browser)")
+            flatpak install -y flathub io.gitlab.librewolf-community ;;
+        "Thorium (Fast Browser)")
+            flatpak install -y flathub com.github.Alex313031.Thorium ;;
         "Sidra (Apple Music)")
             flatpak install -y flathub io.github.wimpysworld.Sidra ;;
         "Spotify (Music Streaming)")
             flatpak install -y flathub com.spotify.Client ;;
         "Discord (Chat App)")
             flatpak install -y flathub com.discordapp.Discord ;;
+        "Telegram (Messaging)")
+            flatpak install -y flathub org.telegram.desktop ;;
         "Steam (Gaming Hub)")
             flatpak install -y flathub com.valvesoftware.Steam ;;
+        "Lutris (Game Manager)")
+            flatpak install -y flathub net.lutris.Lutris ;;
+        "GIMP (Image Editor)")
+            flatpak install -y flathub org.gimp.GIMP ;;
+        "Krita (Digital Painting)")
+            flatpak install -y flathub org.kde.krita ;;
+        "Blender (3D Modeling)")
+            flatpak install -y flathub org.blender.Blender ;;
+        "OBS Studio (Screen Recording)")
+            flatpak install -y flathub com.obsproject.Studio ;;
+        "Audacity (Audio Editor)")
+            flatpak install -y flathub org.audacityteam.Audacity ;;
+        "VLC (Media Player)")
+            flatpak install -y flathub org.videolan.VLC ;;
+        "Transmission (Torrent Client)")
+            flatpak install -y flathub com.transmissionbt.Transmission ;;
+        "Syncthing (File Sync)")
+            flatpak install -y flathub me.syncthing.syncthing ;;
+        "Nextcloud (Cloud Storage)")
+            flatpak install -y flathub com.nextcloud.desktopclient.nextcloud ;;
+        "LibreOffice (Office Suite)")
+            flatpak install -y flathub org.libreoffice.LibreOffice ;;
+        "Thunderbird (Email Client)")
+            flatpak install -y flathub org.mozilla.Thunderbird ;;
+        "Mullvad VPN (Privacy VPN)")
+            flatpak install -y flathub net.mullvad.mullvadvpn ;;
+        "Bitwarden (Password Manager)")
+            flatpak install -y flathub com.bitwarden.desktop ;;
     esac
 done
 
